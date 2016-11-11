@@ -7,11 +7,16 @@ import lang::java::m3::Core;
 
 int complexity(method, myModel) {
 	ast = getMethodASTEclipse(method, model=myModel);
-	return (0 | it + 1 | /\if(_, __) := ast) + 
-			(0 | it + 1 | /\if(_, __, ___) := ast) +
-			(0 | it + 1 | /\do(_, __) := ast) +
-			(0 | it + 1 | /\for(_, __, ___, ___) := ast) +
-			(0 | it + 1 | /\for(_, __, ___) := ast) +
-			(0 | it + 1 | /\switch(_, __) := ast) + 
-			(0 | it + 1 | /\while(_, __) := ast) ;
+	count = 0;
+	visit (ast) {
+		case \if(_, __): count = count + 1;
+		case \if(_, __, ___): count = count + 1;
+		case \do(_, __): count = count + 1;
+		case \for(_, __, ___, ____): count = count + 1;
+		case \for(_, __, ___): count = count + 1;
+		case \switch(_, __): count = count + 1;
+		case \while(_, __): count = count + 1;
+	}
+
+	return count;	
 }
