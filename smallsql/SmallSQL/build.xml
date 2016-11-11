@@ -1,0 +1,128 @@
+<?xml version='1.0'?>
+<project name="SmallSQL" default="jar" basedir=".">
+
+  <!-- set global properties for this build -->
+  
+  <property name="SmallSQLversion" value="0.21"/>
+  
+  <property name="src" value="src"/>
+  <property name="build" value="build"/>
+  <property name="lib"  value="lib"/>
+  <property name="classpath"  value="classes"/>
+  <property name="jarname" value="smallsql.jar"/>
+  <property name="zipname" value="smallsql"/>
+  <property name="docs" value="docs"/>
+  <property name="build.compiler2" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+  
+  
+  
+
+  <target name="init">
+  	<!-- cleanup -->
+  	<delete dir="${build}"/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}" />
+ <!-- Create the directory for the jar file -->
+    <mkdir dir="${lib}" />
+ <!-- Create the directory for the java docs -->
+    <mkdir dir="${docs}" />
+  </target>
+	
+
+  <target name="compile" depends="init">
+   <!-- copy all .java files from ${src} to ${build}  -->
+    <copy todir="${build}/">
+      	<fileset dir="${src}" includes="smallsql/database/**/*.java"/>
+    	<fileset dir="${src}" includes="smallsql/tools/**/*.java"/>
+    </copy>
+ <!-- run javac to compile the source files -->
+    <javac srcdir="${build}" destdir="${build}" debug="false" optimize="true" encoding="UTF8" target="1.5" source="1.5">
+  		<classpath>
+    	<!-- use the value of the ${classpath} property in the classpath -->
+       		<pathelement path="${classpath}"/>
+  		</classpath>
+ 	</javac> 
+  </target>
+	
+
+  <target name="jar" depends="compile">
+	<!-- delete all *.java files from the temp directory -->
+    <delete>
+      <fileset dir="${build}" includes="**/*.java"/>
+    </delete>
+    <!-- make a jar file -->
+    <jar jarfile="${lib}/${jarname}" basedir="${build}/" manifest="MANIFEST.MF"/>
+    <!-- delete all temp files -->
+    <delete dir="${build}"/>
+  </target>
+
+
+  <target name="zip">
+  	<antcall target="jar"/>
+  	<!-- antcall target="docs"/ -->
+  	<echo taskname="zip"></echo>
+  	<delete file="${lib}/${zipname}${SmallSQLversion}_lib.zip"/>
+  	<zip destfile="${lib}/${zipname}${SmallSQLversion}_lib.zip">
+   	  <fileset dir="." includes="readme.txt"/>
+  	  <fileset dir="." includes="licence-LGPL.txt"/>
+  	  <fileset dir="${lib}" includes="${jarname}"/>
+  	</zip>
+  	<delete file="${lib}/${zipname}${SmallSQLversion}_doc.zip"/>
+  	<zip destfile="${lib}/${zipname}${SmallSQLversion}_doc.zip">
+   	  <fileset dir="." includes="readme.txt"/>
+  	  <fileset dir="." includes="licence-LGPL.txt"/>
+      <fileset dir="../../smallSQL web/" includes="doc/**/*.*" excludes="**/_*/"/>
+  	</zip>
+  	<delete file="${lib}/${zipname}${SmallSQLversion}_src.zip"/>
+  	<zip destfile="${lib}/${zipname}${SmallSQLversion}_src.zip">
+   		<fileset dir="." includes="readme.txt"/>
+  		<fileset dir="." includes="licence-LGPL.txt"/>
+    	<fileset dir="." includes="src/smallsql/database/**/*.*"/>
+  		<fileset dir="." includes="src/smallsql/junit/**/*.*"/>
+    	<fileset dir="." includes="src/smallsql/tools/**/*.*"/>
+  	</zip>
+  </target>
+	
+  
+  <target name="docs" depends="compile">
+   <!-- create javadocs -->
+ <javadoc packagenames="smallsql.database*"
+           sourcepath="${build}"
+           defaultexcludes="yes"
+           destdir="${docs}"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="Small SQL API Documentation Version: ${SmallSQLversion}">
+ </javadoc>
+  </target>
+	
+   
+  <target name="clean">
+    <!-- Delete the ${build} and ${lib} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${lib}"/>
+ 	<delete dir="${docs}"/>
+  </target>
+	
+	<target name="cobertura-instrument">
+		<taskdef classpath="lib/cobertura.jar" resource="tasks.properties"/>
+		<delete dir="cobertura"/>
+		<delete file="cobertura.ser"/>
+		<cobertura-instrument todir="cobertura">
+		    <fileset dir="bin">
+		        <include name="smallsql/database/**/*.class"/>
+		    </fileset>
+		</cobertura-instrument>
+		<junit fork="true" dir="." showoutput="true" printsummary="yes">
+			<classpath location="lib/cobertura.jar"/>
+		    <classpath location="cobertura"/>
+		    <classpath location="bin"/>
+			<formatter usefile="false" type="plain"/>
+
+			<test name="smallsql.junit.AllTests"/>
+		</junit>
+		<cobertura-report srcdir="src" destdir="cobertura"/>
+	</target>
+</project>
+
