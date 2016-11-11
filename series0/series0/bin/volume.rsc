@@ -10,8 +10,8 @@ int volume (model) {
 	 return (0 | it + classVolume(c) | c <- classes(model));
 }
 
-int classVolume(class) {
-	f = readFile(class);
+int lines(elem) {
+	f = readFile(elem);
 	allCode = (0 | it + 1 | /.*[^\s].*\n/ := f); 
 	comments = ([] | it+c | /<c:\/\*.*?\*\/>/s := f);
 	int commentLineCount = 0;
