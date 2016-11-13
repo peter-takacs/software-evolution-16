@@ -179,3 +179,4 @@ abstract class Command {
     
     int getMaxRows(){return -1;}
 }
+
