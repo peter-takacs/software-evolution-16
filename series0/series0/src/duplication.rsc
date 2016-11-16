@@ -5,6 +5,7 @@ import IO;
 import String;
 import Set;
 import List;
+import Map;
 import ListRelation;
 import lang::java::m3::Core;
 
@@ -27,98 +28,88 @@ loc ext(a,b)
 	return a(a.offset, a.length, <a.begin.line, a.begin.column>, <b.end.line, b.end.column>);
 }
 
-list[list[loc]] grow(groups)
+loc nextLine(needle, haystack)
 {
-	duplicateGroups = groups;
-	i = 0;
-	wasChange = true;
-	println(size(groups));
-	while (wasChange && i < 1)
+	for (hay <- haystack)
 	{
-		result = [];
-		merged = {};
-		//println(i);
-		//println(size(duplicateGroups));
-		i = i+1;
-		println(i);
-		j=0;
-		wasChange = false;
-		for (list[loc] a <- duplicateGroups) {
-			if (a in merged) continue;
-			for (list[loc] b <- duplicateGroups)
+		if (hay.uri == needle.uri && needle.end.line+1 == hay.begin.line) return hay;
+	}
+	return null;
+}
+
+loc growLine(current, next)
+{
+	return current(current.offset, 
+					current.length + next.length,
+					<current.begin.line, current.begin.column>,
+					<next.end.line, next.end.column>); 
+}
+
+list[loc] grow(group, chunks)
+{
+	return [growLine(g, nextLine(g, chunks)) | g <- group];
+}
+
+list[list[loc]] createDuplicateGroups(m)
+{
+	allChunks = ([] | it + toList(c) | c <- toList(range(m)));
+	return groupDomainByRange(allChunks);
+}
+
+list[tuple[loc, tuple[loc, str]]] chunkifyFiles(model)
+{
+	return ([] | it + chunkify(f) | f <- files(model));
+}
+
+list[list[str]] search(chunks, grain) {
+	startOffset = 0;
+	result = [];
+	needle = chunks[0..grain];
+	haystack = chunks[grain..];
+	while (size(haystack) > size(needle))
+	{
+		startOffset = 0;
+		while (startOffset < size(haystack) - grain)
+		{
+			if (needle == haystack[startOffset..startOffset+grain])
 			{
-				if (a == b) continue;
-				if (extendsDuplicateGroup(a,b))
-				{
-					println(a);
-					println(b);
-					a = [ext(e[0], e[1]) | e <- zip(a,b)];
-					println(a);
-					println("-------------------------");
-					merged = merged + b;
-					wasChange = true;
-					break;
-				}
-			}
-			if (wasChange || a[0].end.line-a[0].begin.line >= 6)
-			{
-				result = result + [a];
-				println(a[0].end.line-a[0].begin.line);
+				result = result + [needle];
 				return;
 			}
-			println(j);
-			j = j+1;
+			startOffset = startOffset + 1;
 		}
-		
-		duplicateGroups = result;
+		needle = drop(1,needle) + haystack[0];
+		haystack = drop(1, haystack);
+		println(size(haystack));
 	}
-	return [];
+	return result;
 }
 
-list[list[tuple[loc, int]]] findDuplicatesInProject(model) {
-	chunks = ([] | it + chunkify(c) | c <- classes(model));
-	list[tuple[loc,str]] duplicateGroups = 
-		[l| l <- findDuplicates(chunks), size(l) > 1];
+list[list[str]] comb(chunks)
+{
+	grain = 100;
 	result = [];
-	i = 0;
-	wasChange = true;
-	println(size(chunks));
-	while (wasChange && i < 100)
+	while (result == [])
 	{
-		println(i);
-		i = i+1;
-		wasChange = false;
-		for (list[tuple[loc,str]] a <- duplicateGroups) {
-			for (list[tuple[loc,str]] b <- duplicateGroups)
-			{
-				if (extendsDuplicateGroup(a,b))
-				{
-					a = [ext(e[0], e[1]) | e <- zip(a,b)];
-					wasChange = true;
-				}
-			}
-			result = result + [a];
-		}
-		duplicateGroups = result;
+		result = result + search(chunks, grain);
+		grain = grain / 2;
+		println(grain);
 	}
-	return duplicateGroups;
+	return result;
 }
 
-list[tuple[loc,str]] chunkify(class) {
-	classText = squeeze(readFile(class), "\t ");
+
+list[tuple[loc, tuple[loc,str]]] chunkify(fil) {
+	classText = squeeze(readFile(fil), "\t ");
 	lines = [];
 	chunks = [];
 	offset = 0;
 	offsetChar = 0;
 	for (/[\s]*<line:.*>\n/ := classText) {
 		length = size(line);
-		lines = lines + <class(offsetChar,length,<offset,0>,<offset,0>), line>;
+		lines = lines + <fil, <fil(offsetChar,length,<offset,0>,<offset,0>), line>>;
 		offsetChar = offsetChar + length;
 		offset = offset + 1;
 	}
 	return lines;
-}
-
-list[list[loc]] findDuplicates(chunks) {
-	return groupDomainByRange(chunks);
 }
