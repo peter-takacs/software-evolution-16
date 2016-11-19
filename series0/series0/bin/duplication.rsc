@@ -9,25 +9,6 @@ import Map;
 import ListRelation;
 import lang::java::m3::Core;
 
-bool extendsDuplicateGroup(a, b)
-{
-	if (size(a) != size(b)) return false;
-	for (pair <- zip(a,b))
-	{
-		if (!extends(pair[0], pair[1])) return false;
-	}
-	return true;
-}
-
-bool extends(a, b) {
-	return a.path == b.path && a.begin.line <= b.begin.line && a.end.line >= b.begin.line;
-}
-
-loc ext(a,b)
-{
-	return a(a.offset, a.length, <a.begin.line, a.begin.column>, <b.end.line, b.end.column>);
-}
-
 loc nextLine(needle, haystack)
 {
 	for (hay <- haystack)
@@ -45,59 +26,53 @@ loc growLine(current, next)
 					<next.end.line, next.end.column>); 
 }
 
-list[loc] grow(group, chunks)
+list[loc] getBiggestGroup(groups)
 {
-	return [growLine(g, nextLine(g, chunks)) | g <- group];
+	maxSize = 0;
+	maxGroup = [];
+	for (g <- groups)
+	{
+		if (size(g) > maxSize)
+		{
+			maxSize = size(g);
+			maxGroup = g;
+		}
+	}
+	return maxGroup;
 }
 
-list[list[loc]] createDuplicateGroups(m)
+list[loc] grow(group, locs, lines)
 {
-	allChunks = ([] | it + toList(c) | c <- toList(range(m)));
-	return groupDomainByRange(allChunks);
+	list[tuple[loc,str]] nextLines = [<g,lines[nextLine(g, locs)][0]> | g <- group];
+	list[list[loc]] grownGroups = groupDomainByRange(nextLines);
+	list[loc] biggestGroup = getBiggestGroup(grownGroups);
+	if (size(biggestGroup) < 2) return group;
+	return [growLine(g, nextLine(g, locs)) | g <- biggestGroup];
+}
+
+list[loc] growUntilPossible(group, locs, lines)
+{
+	previous = null;
+	current = group;	
+	while (previous != current)
+	{
+		previous = current;
+		current = grow(current, locs, lines);
+	}
+	return current;
+}
+
+
+
+list[list[loc]] createDuplicateGroups(lines)
+{
+	return groupDomainByRange(lines);
 }
 
 list[tuple[loc, tuple[loc, str]]] chunkifyFiles(model)
 {
 	return ([] | it + chunkify(f) | f <- files(model));
 }
-
-list[list[str]] search(chunks, grain) {
-	startOffset = 0;
-	result = [];
-	needle = chunks[0..grain];
-	haystack = chunks[grain..];
-	while (size(haystack) > size(needle))
-	{
-		startOffset = 0;
-		while (startOffset < size(haystack) - grain)
-		{
-			if (needle == haystack[startOffset..startOffset+grain])
-			{
-				result = result + [needle];
-				return;
-			}
-			startOffset = startOffset + 1;
-		}
-		needle = drop(1,needle) + haystack[0];
-		haystack = drop(1, haystack);
-		println(size(haystack));
-	}
-	return result;
-}
-
-list[list[str]] comb(chunks)
-{
-	grain = 100;
-	result = [];
-	while (result == [])
-	{
-		result = result + search(chunks, grain);
-		grain = grain / 2;
-		println(grain);
-	}
-	return result;
-}
-
 
 list[tuple[loc, tuple[loc,str]]] chunkify(fil) {
 	classText = squeeze(readFile(fil), "\t ");
