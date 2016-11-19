@@ -5,6 +5,7 @@ import IO;
 import String;
 import Set;
 import List;
+import Type;
 import Map;
 import ListRelation;
 import lang::java::m3::Core;
@@ -15,7 +16,7 @@ loc nextLine(needle, haystack)
 	{
 		if (hay.uri == needle.uri && needle.end.line+1 == hay.begin.line) return hay;
 	}
-	return null;
+	return needle;
 }
 
 loc growLine(current, next)
@@ -43,7 +44,8 @@ list[loc] getBiggestGroup(groups)
 
 list[loc] grow(group, locs, lines)
 {
-	list[tuple[loc,str]] nextLines = [<g,lines[nextLine(g, locs)][0]> | g <- group];
+	nextLines = [<g,lines[nextLine(g, locs)][0]> | g <- group, nextLine(g, locs) != g];
+	if (size(nextLines) != size(group)) return group; //We couldn't find the next line
 	list[list[loc]] grownGroups = groupDomainByRange(nextLines);
 	list[loc] biggestGroup = getBiggestGroup(grownGroups);
 	if (size(biggestGroup) < 2) return group;
@@ -62,6 +64,47 @@ list[loc] growUntilPossible(group, locs, lines)
 	return current;
 }
 
+bool containsLoc(a,b)
+{
+	return a.uri == b.uri && a.offset<= b.offset && a.offset+a.length > b.offset;
+}
+
+list[list[loc]] findDuplicateChunks(pGroups, pLocs, pLines)
+{
+	result = [];
+	locs = pLocs;
+	lines = pLines;
+	for (group <- pGroups)
+	{
+		maximum = growUntilPossible(group, locs, lines);
+		println("alma");
+		for (e <- maximum)
+		{
+			locs = [l | l<-locs, !containsLoc(e, l)];
+			lines = [l | l<-lines, !containsLoc(e, l[0])];
+		} 
+		result = result + [maximum];
+		println(typeOf(result));
+	}
+	return result;
+}
+
+list[list[loc]] findDuplicateChunksInProject(location) {
+	model = createM3FromEclipseProject(location);
+	lines = range(chunkifyFiles(model));
+	groups = groupDomainByRange(lines);
+	locs = [x[0] | x<-lines];
+	return findDuplicateChunks(groups, locs, lines);
+}
+
+value modelLinesGroupsLocs(location)
+{
+	model = createM3FromEclipseProject(location);
+	lines = range(chunkifyFiles(model));
+	groups = groupDomainByRange(lines);
+	locs = [x[0] | x<-lines];
+	return <model, lines, groups, locs>;	
+}
 
 
 list[list[loc]] createDuplicateGroups(lines)
