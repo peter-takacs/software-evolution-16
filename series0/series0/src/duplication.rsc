@@ -100,7 +100,25 @@ list[list[loc]] findDuplicateChunksInProject(location) {
 	lines = range(filesToChunks);
 	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
-	return findDuplicateChunks(groups, locs, lines, filesToChunks);
+	return deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks));
+}
+
+list[list[loc]] deleteOverlapping(list[list[loc]] groups)
+{
+	queue = groups;
+	result = [];
+	while (size(queue) > 0)
+	{
+		println(size(queue));
+		current = queue[0];
+		delete(queue, 0);
+		queue = [x | x<-queue, !(x[0].uri == current[0].uri && 
+			((current[0].begin.line <= x[0].begin.line && current[0].end.line >= x[0].end.line)
+			||
+			(x[0].begin.line <= current[0].begin.line && x[0].end.line >= current[0].end.line)))];
+		result = result + [current];
+	}
+	return result;
 }
 
 list[list[loc]] groupSameLines(list[tuple[loc, int]] lines)
@@ -125,10 +143,11 @@ list[list[loc]] groupSameLines(list[tuple[loc, int]] lines)
 			currentTag = c[1];
 		}
 	}
+	if (size(currentGroup) > 1) result = result + [currentGroup];
 	return result;
 }
 
-value modelLinesGroupsLocs(location)
+tuple[M3, list[tuple[loc,int]], list[list[loc]], list[loc]] modelLinesGroupsLocs(location)
 {
 	model = createM3FromEclipseProject(location);
 	lines = range(chunkifyFiles(model));
@@ -148,7 +167,7 @@ list[tuple[str, tuple[loc,int]]] chunkify(fil) {
 	chunks = [];
 	offset = 1;
 	offsetChar = 0;
-	for (/<whitespace:[\s]*><line:.*>\n/ := classText) {
+	for (/<whitespace:[\s\t]*><line:.*>\n/ := classText) {
 		length = size(line) + size(whitespace) + 1; // \n
 		lines = lines + <fil.uri, <fil(offsetChar,length,<offset,0>,<offset,0>), hashString(line)>>;
 		offsetChar = offsetChar + length;
