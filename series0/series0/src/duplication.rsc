@@ -10,11 +10,11 @@ import Map;
 import ListRelation;
 import lang::java::m3::Core;
 
-loc nextLine(needle, haystack)
+loc nextLine(loc needle, list[loc] haystack, lrel[str,tuple[loc,int]] filesToChunks)
 {
-	for (hay <- haystack)
+	for (hay <- filesToChunks[needle.uri])
 	{
-		if (hay.uri == needle.uri && needle.end.line+1 == hay.begin.line) return hay;
+		if (hay[0].uri == needle.uri && needle.end.line+1 == hay[0].begin.line) return hay[0];
 	}
 	return needle;
 }
@@ -42,24 +42,33 @@ list[loc] getBiggestGroup(groups)
 	return maxGroup;
 }
 
-list[loc] grow(group, locs, lines)
+list[loc] grow(group, locs, lines, filesToChunks)
 {
-	nextLines = [<g,lines[nextLine(g, locs)][0]> | g <- group, nextLine(g, locs) != g];
+	nextLines = [];
+	nextLocs = [];
+	for (g <- group)
+	{
+		nloc = nextLine(g, locs, filesToChunks);
+		nl = lines[nloc];
+		if (size(nl) == 0 || nextLine(g, locs, filesToChunks) == g) return group;
+		nextLines = nextLines + <g,nl[0]>;
+		nextLocs = nextLocs + <g,nloc>;
+	}
 	if (size(nextLines) != size(group)) return group; //We couldn't find the next line
-	list[list[loc]] grownGroups = groupDomainByRange(nextLines);
+	list[list[loc]] grownGroups = groupSameLines(nextLines);
 	list[loc] biggestGroup = getBiggestGroup(grownGroups);
 	if (size(biggestGroup) < 2) return group;
-	return [growLine(g, nextLine(g, locs)) | g <- biggestGroup];
+	return [growLine(g, nextLine(g, locs, filesToChunks)) | g <- biggestGroup];
 }
 
-list[loc] growUntilPossible(group, locs, lines)
+list[loc] growUntilPossible(group, locs, lines, filesToChunks)
 {
 	previous = null;
 	current = group;	
 	while (previous != current)
 	{
 		previous = current;
-		current = grow(current, locs, lines);
+		current = grow(current, locs, lines, filesToChunks);
 	}
 	return current;
 }
@@ -69,65 +78,85 @@ bool containsLoc(a,b)
 	return a.uri == b.uri && a.offset<= b.offset && a.offset+a.length > b.offset;
 }
 
-list[list[loc]] findDuplicateChunks(pGroups, pLocs, pLines)
+list[list[loc]] findDuplicateChunks(pGroups, pLocs, pLines, pFtc)
 {
 	result = [];
 	locs = pLocs;
 	lines = pLines;
+	i = 0;
 	for (group <- pGroups)
 	{
-		maximum = growUntilPossible(group, locs, lines);
-		println("alma");
-		for (e <- maximum)
-		{
-			locs = [l | l<-locs, !containsLoc(e, l)];
-			lines = [l | l<-lines, !containsLoc(e, l[0])];
-		} 
+		i = i+1;
+		println(i);
+		maximum = growUntilPossible(group, locs, lines, pFtc);		
 		result = result + [maximum];
-		println(typeOf(result));
 	}
 	return result;
 }
 
 list[list[loc]] findDuplicateChunksInProject(location) {
 	model = createM3FromEclipseProject(location);
-	lines = range(chunkifyFiles(model));
-	groups = groupDomainByRange(lines);
+	filesToChunks = chunkifyFiles(model);
+	lines = range(filesToChunks);
+	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
-	return findDuplicateChunks(groups, locs, lines);
+	return findDuplicateChunks(groups, locs, lines, filesToChunks);
+}
+
+list[list[loc]] groupSameLines(list[tuple[loc, int]] lines)
+{
+	list[tuple[loc, int]] st = sort(lines, bool(tuple[loc,int] a, tuple[loc,int] b) {return a[1]>b[1];});
+	list[list[loc]] result = [];
+	int currentTag = st[0][1];
+	list[loc] currentGroup = [];
+	for (c <- st)
+	{
+		if (c[1] == currentTag)
+		{
+			currentGroup = currentGroup + c[0];
+		}
+		else
+		{
+			if (size(currentGroup) > 1)
+			{
+				result = result + [currentGroup];
+			}
+			currentGroup = [c[0]];
+			currentTag = c[1];
+		}
+	}
+	return result;
 }
 
 value modelLinesGroupsLocs(location)
 {
 	model = createM3FromEclipseProject(location);
 	lines = range(chunkifyFiles(model));
-	groups = groupDomainByRange(lines);
+	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
 	return <model, lines, groups, locs>;	
 }
 
-
-list[list[loc]] createDuplicateGroups(lines)
-{
-	return groupDomainByRange(lines);
-}
-
-list[tuple[loc, tuple[loc, str]]] chunkifyFiles(model)
+list[tuple[str, tuple[loc, int]]] chunkifyFiles(model)
 {
 	return ([] | it + chunkify(f) | f <- files(model));
 }
 
-list[tuple[loc, tuple[loc,str]]] chunkify(fil) {
-	classText = squeeze(readFile(fil), "\t ");
+list[tuple[str, tuple[loc,int]]] chunkify(fil) {
+	classText = readFile(fil);
 	lines = [];
 	chunks = [];
-	offset = 0;
+	offset = 1;
 	offsetChar = 0;
-	for (/[\s]*<line:.*>\n/ := classText) {
-		length = size(line);
-		lines = lines + <fil, <fil(offsetChar,length,<offset,0>,<offset,0>), line>>;
+	for (/<whitespace:[\s]*><line:.*>\n/ := classText) {
+		length = size(line) + size(whitespace) + 1; // \n
+		lines = lines + <fil.uri, <fil(offsetChar,length,<offset,0>,<offset,0>), hashString(line)>>;
 		offsetChar = offsetChar + length;
 		offset = offset + 1;
 	}
 	return lines;
+}
+
+int hashString(string) {
+	return (17 | (it * 23 + x) % 4294967296 | x <- chars(string));	
 }
