@@ -15,7 +15,8 @@ int volume (model) {
 
 Figure visTree(loc root, rel[loc from, loc to] containments)
 {
-	return tree(box(text(root.uri + "\n" + toString(lines(root))), fillColor("blue")), [visTree(g,containments) | g<-containments[root]], std(gap(20)));
+	return tree(box(text(root.uri + "\n" + toString(lines(root))), fillColor("blue")), 
+		[visTree(g,containments) | g<-containments[root], g.scheme == "java+class" || g.scheme == "java+method"], std(gap(20)));
 }
 
 void drawTree(M3 model)
