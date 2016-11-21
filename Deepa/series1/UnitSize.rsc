@@ -3,6 +3,7 @@ module UnitSize
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import IO;
+import MethodSize;
 import vis::Figure;
 import vis::Render;
 import List;
