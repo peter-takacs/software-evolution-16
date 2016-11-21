@@ -8,9 +8,18 @@ import vis::Figure;
 import vis::Render;
 import util::Math;
 
+str getGrade(model)
+{
+	int vol = volume(model);
+	if (vol < 66000) return "++";
+	if (vol < 246000) return "+";
+	if (vol < 665000) return "o";
+	if (vol < 1310000) return "-";
+	return "--";
+}
+
 int volume (model) {
-	 //model = createM3FromEclipseProject(|project://SmallSQL/|);
-	 return (0 | it + classVolume(c) | c <- classes(model));
+	 return (0 | it + lines(c) | c <- classes(model));
 }
 
 Figure visTree(loc root, rel[loc from, loc to] containments)
@@ -35,10 +44,11 @@ int lines(elem) {
 	f = readFile(elem);
 	allCode = (0 | it + 1 | /.*[^\s].*\n/ := f); 
 	comments = ([] | it+c | /<c:\/\*.*?\*\/>/s := f);
+	singleLineComments = (0 | it + 1 | /<c:\/\/.*>/ := f);
 	int commentLineCount = 0;
 	for (c <- comments)
 	{
 		commentLineCount = commentLineCount + (0 | it + 1 | /.*[^\s].*\n/ := c);
 	}
-	return allCode - commentLineCount;
+	return allCode - commentLineCount - singleLineComments;
 }

@@ -10,6 +10,8 @@ import Map;
 import ListRelation;
 import lang::java::m3::Core;
 
+import volume;
+
 loc nextLine(loc needle, list[loc] haystack, lrel[str,tuple[loc,int]] filesToChunks)
 {
 	for (hay <- filesToChunks[needle.uri])
@@ -94,13 +96,24 @@ list[list[loc]] findDuplicateChunks(pGroups, pLocs, pLines, pFtc)
 	return result;
 }
 
-list[list[loc]] findDuplicateChunksInProject(location) {
-	model = createM3FromEclipseProject(location);
+str gradeDuplication(model)
+{
+	chunks = findDuplicateChunksInProject(model);
+	duplicateVolume = (0 | it + (x[0].end.line-x[0].begin.line)*size(x) | x <- chunks);
+	ratio = toReal(duplicateVolume) / volume(model) * 100;
+	if (ratio > 20.0) return "--";
+	if (ratio > 10.0) return "-";
+	if (ratio > 5.0 ) return "o";
+	if (ratio > 3.0 ) return "+";
+	return "++";
+}
+
+list[list[loc]] findDuplicateChunksInProject(model) {
 	filesToChunks = chunkifyFiles(model);
 	lines = range(filesToChunks);
 	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
-	return deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks));
+	return [x | x <- deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks)), size(x)>5];
 }
 
 list[list[loc]] deleteOverlapping(list[list[loc]] groups)
