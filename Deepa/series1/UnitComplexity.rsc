@@ -30,7 +30,6 @@ str risk="";
 int totalLinesofCode=0;
 for(i<- methodList){
 a = getMethodASTEclipse(i,model=myModel);
-//print("method <i> \n");
 int complexity =0;
 int methodCodeLines=0;
 for(ast<-a){
@@ -56,62 +55,32 @@ for(ast<-a){
 totalComplexity = totalComplexity +complexity;
 methodCount = methodCount+1;
 methodCodeLines = methodSize(i);
+totalLinesofCode  = totalLinesofCode + methodCodeLines;
 if((complexity<10)){
 int totalSimpleRisk  = totalSimpleRisk+ methodCodeLines;
-totalLinesofCode  = totalLinesofCode +methodCodeLines;
 }
-if((complexity>10)&&(complexity<20)){
+elseif(complexity<20){
 totalModerateRisk = totalModerateRisk+ methodCodeLines;
-totalLinesofCode  = totalLinesofCode +methodCodeLines;
 }
-elseif((complexity>21)&&(complexity<50)){
+elseif(complexity<50){
 totalHighRisk = totalHighRisk+methodCodeLines;
-
-totalLinesofCode  = totalLinesofCode + methodCodeLines;
-}elseif((complexity>50)){
+}elseif(complexity>51){
 totalveyHighRisk = totalveryHighRisk+methodCodeLines;
-totalLinesofCode  = totalLinesofCode +methodCodeLines;
 }
 compelxity=0;
 
 }
 //calculate average complexity
 avgComplexity = (totalComplexity/methodCount);
-
-
+avgSimpleRisk =0;
+avgSimpleRisk = (100*totalSimpleRisk)/totalLinesofCode;
 avgModerateRisk = (100*totalModerateRisk)/totalLinesofCode;
 avgHighRisk = (100*totalHighRisk)/totalLinesofCode;
 avgveryHighRisk = (100*totalveryHighRisk)/totalLinesofCode;
 
-if(avgComplexity<10){
-risk ="simple, without much risk" ;
-}
-else if((avgComplexity>11)&&(avgComplexity<20)){
-risk = "more complex, moderate risk";
-}
-else if((avgComplexity>21)&&(avgComplexity<50)){
-risk = "complex, high risk";
-}
-else{
-risk = "untestable, very high risk";
-}
+risk = calculaterisk(avgComplexity);
+rank = calculaterank(avgModerateRisk,avgHighRisk,avgveryHighRisk);
 
-
-if((avgModerateRisk <= 25)&&(avgHighRisk==0)&&(avgveryHighRisk==0)){
-rank = "++";
-}
-else if((avgModerateRisk <=30)&&(avgHighRisk<=5)&&(avgveryHighRisk==0)){
-rank = "+";
-}
-else if((avgModerateRisk <=40)&&(avgHighRisk<=10)&&(avgveryHighRisk==0)){
-rank = "0";
-}
-else if((avgModerateRisk <=50)&&(avgHighRisk<=15)&&(avgveryHighRisk<=5)){
-rank = "-";
-}
-else{
-rank ="--";
-}
 
 t1 = tree(box(text("SmallSQL", fontColor("black")),fillColor("gray")),
           [ box(text("Total complexity is <totalComplexity>\n ", fontColor("black")),fillColor("gray")),

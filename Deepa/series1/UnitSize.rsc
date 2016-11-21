@@ -3,10 +3,10 @@ module UnitSize
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import IO;
-import MethodSize;
 import vis::Figure;
 import vis::Render;
 import List;
+import MethodSize;
 
 void unitSize(){
 model = createM3FromEclipseProject(|project://smallSQL|);
@@ -35,19 +35,8 @@ totalMethods = totalMethods+1;
 
 }
 avgLinecount =(totalCount/totalMethods);
+risk = calculaterisk(avgLinecount);
 
-if(avgLinecount<10){
-risk ="simple, without much risk" ;
-}
-else if((avgLineCount>11)&&(avgLineCount<20)){
-risk = "more complex, moderate risk";
-}
-else if((avgLineCount>21)&&(avgLineCount<50)){
-risk = "complex, high risk";
-}
-else{
-risk = "untestable, very high risk";
-}
 
 //render(box(text("Average linecount in all the methods is <avgLinecount>", fontColor("white")), fillColor("mediumblue"),grow(1.2)));
 t1 = tree(box(text("SmallSQL", fontColor("black")),fillColor("gray")),
