@@ -33,7 +33,7 @@ a = getMethodASTEclipse(i,model=myModel);
 int complexity =0;
 int methodCodeLines=0;
 for(ast<-a){
-//initially used if, for, case,do,while . But found other statemts in the website below
+//initially used if, for, case,do,while . But found other statemtentss in the website below
 //Used different types of statements from http://stackoverflow.com/questions/40064886/obtaining-cyclomatic-complexity
     visit (ast) {
         case \if(_,_) : complexity += 1;

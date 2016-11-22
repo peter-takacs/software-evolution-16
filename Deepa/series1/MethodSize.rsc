@@ -13,38 +13,22 @@ return totalLinesofCode;
 
 
 int methodSize(method){
-totalCount = lineCount(method)-(countWhiteandblankspaces(method)+countComments(method));
-return totalCount;
-}
-//Counts all lines in the project
-int lineCount(method){
 count =0;
-file = readFileLines(method);
-count = size(file);
-return count;
-}
-
-//counts whitelines and blank spaces
-int countWhiteandblankspaces(method){
 countWhiteSpace =0;
+countcommentlines=0;
 file = readFileLines(method);
 for(line<-file){
-if(/^[ \t\r\n]*$/ := line)
+count = count + 1;
+if((/^\\s*?$/:=line)||(/^[ \t\r\n]*$/ := line)){
 countWhiteSpace = countWhiteSpace + 1;
 }
-return countWhiteSpace;
+elseif((/((\*|\/*)?[\n\r]*?\*)/ := line)||(/\/\/.*/:=line)){
+countcommentlines = countcommentlines +1;
 }
-//counts comment lines.
-int countComments(method){
-c =0;
+}
+return (count-countWhiteSpace-countcommentlines);
+}
 
-file = readFileLines(method);
-for(commentLine <- file){
-if(/((\*|\/*)?[\n\r]*?\*)/ := commentLine)
-c = c +1;
-}
-return c;
-}
 
 str calculaterisk(avgComplexity){
 str risk ="";

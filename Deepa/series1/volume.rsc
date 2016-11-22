@@ -41,7 +41,6 @@ if(countperthousand<66){
  rank = "Rank is --";
  }
  //Visual display of the output
-//render(box(text("Line count is <totalCount>\n Size of the system is <prjSize>\n Rank is <rank>", fontColor("white")), fillColor("blue"),size(50,50)));
 t1 = tree(box(text("SmallSQL", fontColor("black")),fillColor("gray")),
           [ box(text("Line count is <totalCount>\n ", fontColor("black")),fillColor("gray")),
      	    box(text("Size of the system is <prjSize>", fontColor("black")),fillColor("gray")),
@@ -64,7 +63,7 @@ count = count + 1;
 if((/^\\s*?$/:=line)||(/^[ \t\r\n]*$/ := line)){
 countWhiteSpace = countWhiteSpace + 1;
 }
-elseif((/((\*|\/*).*?\*)/ := line)||(/\/\/.*/:=line)){
+elseif((/((\*|\/*)?[\n\r]*?\*)/ := line)||(/\/\/.*/:=line)){
 countcommentlines = countcommentlines +1;
 }
 }
