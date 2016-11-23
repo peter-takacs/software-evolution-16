@@ -8,14 +8,13 @@ import vis::Figure;
 import vis::Render;
 
 void volume(){
-model = createM3FromEclipseProject(|project://smallsQL|);
+model = createM3FromEclipseProject(|project://smallSQL|);
 classList = classes(model);
 totalCount=0;
 str prjSize="";
 str rank = "";
 countperthousand=0;
 //Total line count is the the line count of code lines in the entire project 
-//totalCount = lineCount(classList)-countWhiteandblankspaces(classList)-countComments(classList);
 totalCount = lines(classList);
 
 
