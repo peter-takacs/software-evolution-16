@@ -22,15 +22,15 @@ map[str, real] aggregateUnitRiskLineRatios(model)
 		c = countLines(method);
 		if (c > 125)
 		{
-			if (c < 135) m["mod"] += countLines(method);
-			else if (c < 180) m["hi"] += countLines(method);
+			if (c < 150) m["mod"] += countLines(method);
+			else if (c < 200) m["hi"] += countLines(method);
 			else m["ex"] += countLines(method);
 		}
 	}
 	vol = volume(model);
-	m["mod"] = toReal(m["mod"]);
-	m["hi"] = toReal(m["hi"]);
-	m["ex"] = toReal(m["ex"]);
+	m["mod"] = toReal(m["mod"])/vol*100;
+	m["hi"] = toReal(m["hi"])/vol*100;
+	m["ex"] = toReal(m["ex"])/vol*100;
 	return m;
 }
 
