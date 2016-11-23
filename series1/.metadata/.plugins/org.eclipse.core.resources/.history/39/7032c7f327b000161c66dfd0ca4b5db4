@@ -1,0 +1,62 @@
+module complexity
+
+import lang::java::jdt::m3::Core;
+import IO;
+import String;
+import lang::java::m3::Core;
+
+int volume (model) {
+	 return (0 | it + classVolume(c) | c <- classes(model));
+}
+
+
+int lines(elem) {
+	f = readFile(elem);
+	allCode = (0 | it + 1 | /.*[^\s].*\n/ := f); 
+	comments = ([] | it+c | /<c:\/\*.*?\*\/>/s := f);
+	int commentLineCount = 0;
+	for (c <- comments)
+	{
+		commentLineCount = commentLineCount + (0 | it + 1 | /.*[^\s].*\n/ := c);
+	}
+	return allCode - commentLineCount;
+}
+
+int complexity(method, myModel) {
+	ast = getMethodASTEclipse(method, model=myModel);
+	count = 0;
+	visit (ast) {
+		case \if(_, __): count = count + 1;
+		case \if(_, __, ___): count = count + 1;
+		case \do(_, __): count = count + 1;
+		case \for(_, __, ___, ____): count = count + 1;
+		case \for(_, __, ___): count = count + 1;
+		case \switch(_, __): count = count + 1;
+		case \while(_, __): count = count + 1;
+		case \do(_, __): count = count + 1;
+		case foreach(_, __,___): count = count + 1;
+		case \catch(_, __): count = count + 1;
+		case \conditional(_, __, ___): count = count + 1;
+		case infix(_,"&&",_) : count = count + 1;
+        case infix(_,"||",_) : count = count + 1;
+	}
+
+	return count;	
+}
+
+lrel[str, int] aggregateRiskLines(model)
+{
+	map[str, int] m = ("mod": 0, "hi": 0, "ex": 0);
+	for (method <- methods(model))
+	{
+		c = complexity(method, model);
+		if (c > 11)
+		{
+			if (c < 20) m["mod"] += lines(method);
+			else if (c < 50) m["hi"] += lines(method);
+			else m["ex"] += lines(method);
+		}
+	}
+	return m;
+}
+

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;series0/src/fileSize.rsc&apos; to &apos;unitSize.rsc&apos;" description="Rename resource &apos;fileSize.rsc&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/fileSize.rsc" name="unitSize.rsc" stamp="1478892604119" updateReferences="true"/>
+</session>
