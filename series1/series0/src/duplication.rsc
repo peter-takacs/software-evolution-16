@@ -113,7 +113,27 @@ list[list[loc]] findDuplicateChunksInProject(model) {
 	lines = range(filesToChunks);
 	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
-	return [x | x <- deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks)), size(x)>5];
+	return [x | x <- deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks))];
+}
+
+void writeToJson(list[list[loc]] duplicates)
+{
+	loc file = |project://series0/output.txt|;
+	s = "{\n\"groups\":[";
+	for (group <- duplicates)
+	{
+		s += "\n{\"classes\":[";
+		for (range <- group)
+		{
+			s += "\n{\"uri\":\"<range.uri>\",";
+			s += "\n\"begin\":<range.begin.line>,";
+			s += "\n\"end\":<range.end.line>\n";
+			s += "},";
+		}
+		s += "\n{}]\n},";
+	}
+	s += "{}\n]\n}";
+	writeFile(file, s);
 }
 
 list[list[loc]] deleteOverlapping(list[list[loc]] groups)
