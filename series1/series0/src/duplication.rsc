@@ -130,9 +130,11 @@ void writeToJson(list[list[loc]] duplicates)
 			s += "\n\"end\":<range.end.line>\n";
 			s += "},";
 		}
-		s += "\n{}]\n},";
+		s = substring(s,0,size(s)-1);
+		s += "\n]\n},";
 	}
-	s += "{}\n]\n}";
+	s = substring(s,0,size(s)-1);
+	s += "\n]\n}";
 	writeFile(file, s);
 }
 
@@ -145,10 +147,34 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 		println(size(queue));
 		current = queue[0];
 		delete(queue, 0);
-		queue = [x | x<-queue, !(x[0].uri == current[0].uri && 
-			((current[0].begin.line <= x[0].begin.line && current[0].end.line >= x[0].end.line)
-			||
-			(x[0].begin.line <= current[0].begin.line && x[0].end.line >= current[0].end.line)))];
+		fst = current[0];
+		res = [];
+		for (x <- queue)
+		{
+			if (x[0].uri in [u.uri | u<-current])
+			{
+				u = [k | k<-current, k.uri == x[0].uri][0];
+				if ((u.begin.line <= x[0].begin.line && u.end.line >= x[0].end.line)
+					||
+					(x[0].begin.line <= u.begin.line && x[0].end.line >= u.end.line))
+				{
+					continue;
+				}
+				else
+				{
+					res = res + [x];
+				}
+			}
+			else
+			{
+				res = res + [x];
+			}
+		}
+		queue = res;
+		//queue = [x | x<-queue, !(x[0].uri in [u.uri | u <- current] && 
+		//	((current[0].begin.line <= x[0].begin.line && current[0].end.line >= x[0].end.line)
+		//	||
+		//	(x[0].begin.line <= current[0].begin.line && x[0].end.line >= current[0].end.line)))];
 		result = result + [current];
 	}
 	return result;
@@ -194,7 +220,7 @@ list[tuple[str, tuple[loc, int]]] chunkifyFiles(model)
 	return ([] | it + chunkify(f) | f <- files(model));
 }
 
-list[tuple[str, tuple[loc,int]]] chunkify(fil) {
+list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	classText = readFile(fil);
 	lines = [];
 	chunks = [];

@@ -18,6 +18,8 @@ int complexity(method, myModel) {
 		case \for(_, __, ___): count = count + 1;
 		case \switch(_, __): count = count + 1;
 		case \while(_, __): count = count + 1;
+		case \case(_,__): count = count + 1;
+		case \catch(_,__): count = count + 1;
 		case \do(_, __): count = count + 1;
 		case foreach(_, __,___): count = count + 1;
 		case \catch(_, __): count = count + 1;
