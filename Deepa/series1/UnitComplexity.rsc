@@ -64,8 +64,8 @@ totalModerateRisk = totalModerateRisk+ methodCodeLines;
 }
 elseif(complexity<50){
 totalHighRisk = totalHighRisk+methodCodeLines;
-}elseif(complexity>51){
-totalveyHighRisk = totalveryHighRisk+methodCodeLines;
+}elseif(complexity>50){
+totalveryHighRisk = totalveryHighRisk+methodCodeLines;
 }
 compelxity=0;
 
@@ -82,7 +82,6 @@ avgveryHighRisk = (100*totalveryHighRisk)/totalLinesofCode;
 risk = calculaterisk(avgComplexity);
 //Calculate rank
 rank = calculaterank(avgModerateRisk,avgHighRisk,avgveryHighRisk);
-
 
 t1 = tree(box(text("SmallSQL", fontColor("black")),fillColor("gray")),
           [ box(text("Total complexity is <totalComplexity>\n ", fontColor("black")),fillColor("gray")),
