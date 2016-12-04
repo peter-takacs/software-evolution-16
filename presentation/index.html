@@ -1,0 +1,68 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <style>
+
+            .links line {
+                stroke: #999;
+                stroke-opacity: 0.6;
+            }
+
+            .nodes circle {
+                stroke: #fff;
+                stroke-width: 1.5px;
+            }
+
+            circle.selected {
+                fill: #f00;
+            }
+
+            circle.secondary {
+                fill: yellow;
+            }
+
+            .target {
+                margin-left: 15px;
+            }
+            
+
+        </style>
+
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+        <script src="js/sigma.js"></script>
+        <script src="js/main.js"></script>
+    </head>
+    <body>
+        <div class="flex-column">
+            <div class="flex-row">
+                <div class="flex-column">
+                    <div id="header">
+                        <h1>Clone detection</h1>
+                    </div>
+                    <svg width="1000" height="600"></svg>
+                </div>
+                <div id="details" class="sidebar">
+                    <div class="selected-class"></div>
+                    <div id="has-common">
+                    
+                    </div>
+                </div>
+            </div>
+            <div>
+                using <a href="https://bl.ocks.org/mbostock/4062045">https://bl.ocks.org/mbostock/4062045</a>
+            </div>
+        </div>
+    </body>
+</html>
