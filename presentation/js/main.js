@@ -1,7 +1,8 @@
-var MIN_WEIGHT = 2;
+var MIN_WEIGHT = 6;
 
-            fetch("output.json").then(response => {
+            fetch("file:///C:/Users/Peter/dev/software-evolution/presentation/output.json").then(response => {
                 response.json().then(j => {
+                    
                     let graph = removeIsolatedNodes(createGraphObject(j));
                     let edgeMap = getEdges(j);
 

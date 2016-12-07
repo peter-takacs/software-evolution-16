@@ -171,10 +171,6 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 			}
 		}
 		queue = res;
-		//queue = [x | x<-queue, !(x[0].uri in [u.uri | u <- current] && 
-		//	((current[0].begin.line <= x[0].begin.line && current[0].end.line >= x[0].end.line)
-		//	||
-		//	(x[0].begin.line <= current[0].begin.line && x[0].end.line >= current[0].end.line)))];
 		result = result + [current];
 	}
 	return result;
@@ -226,7 +222,7 @@ list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	chunks = [];
 	offset = 1;
 	offsetChar = 0;
-	for (/<whitespace:[\s\t]*><line:.*>\n/ := classText) {
+	for (/<whitespace:[ \t]*><line:[^\n]*>\n/ := classText) {
 		length = size(line) + size(whitespace) + 1; // \n
 		lines = lines + <fil.uri, <fil(offsetChar,length,<offset,0>,<offset,0>), hashString(line)>>;
 		offsetChar = offsetChar + length;
