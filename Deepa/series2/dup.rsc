@@ -30,21 +30,21 @@ int end=0;
 
 loc clone = |project://series2/src/tmp.txt|;
 //list[str] code=[];
-list[tuple[loc cloneClass,str cloneCode]] code = [<|project://series2/src/|,"">];
+list[tuple[loc cloneClass,str cloneCode, int lineNum]] code = [<|project://series2/src/|,"",0>];
 tuple[loc cloneClass,str cloneCode] codeClone = <|project://series2/src/tmp.txt|,"">;
-list[tuple[loc cloneClass,str cloneCode]] codeTuples = [<|project://series2/src/|,"">];
+list[tuple[loc cloneClass,str cloneCode, int lineNum]] codeTuples = [<|project://series2/src/|,"",0>];
 list[tuple[loc cloneClass,str cloneCode]] totalCode = [<|project://series2/src/tmp.txt|,"">];
 //list[loc] classNames = [];
 list[tuple[loc cloneClass, int begin, int end]] classNames = [<|project://series2/src/tmp.txt|,0,0>];;
 loc largecloneClass = |project://series2/src/tmp.txt|;
 reportPath = |project://series2/src/reportOveriew.txt|;
-filePath = |project://series2/src/duplication.txt|;
+filePath = |project://series2/src/duplication.json|;
 for(className<- classList){
 file = readFileLines(className);
 int j=0;
 clone = className;
 largecloneClass=className;
-codeTuples[0] = <className,"">;
+codeTuples[0] = <className,"",0>;
 
 for(line<-file){
 
@@ -53,7 +53,7 @@ line="";
 }
 else{
 //lineCount=lineCount+1;
-code = code+<className,line>;
+code = code+<className,line,indexOf(file,line)>;
 }
 }
 }
@@ -64,7 +64,7 @@ distMap = distribution(code.cloneCode);
 for(codeLine<-code){
 i = (distMap[codeLine.cloneCode]);
 if(i >= 2){
-codeTuples = codeTuples +<codeLine.cloneClass,codeLine.cloneCode>;
+codeTuples = codeTuples +<codeLine.cloneClass,codeLine.cloneCode,codeLine.lineNum>;
 }
 
 }
@@ -80,10 +80,10 @@ while((i<size(codeTuples))){
 if((codeTuples.cloneCode[i..(i+6)])==(code.cloneCode[indexOf(code.cloneCode,codeTuples.cloneCode[i])..((indexOf(code.cloneCode,codeTuples.cloneCode[i])+6))])){
 cloneClassuri = codeTuples.cloneClass[i];
 println((codeTuples[i]).cloneClass);
-//appendToFile(filePath,cloneClassuri);
-//begin = indexOf(code.cloneCode,codeTuples.cloneCode[i]);
-
-classNames = classNames+<cloneClassuri,i,(i+6)>;
+println((codeTuples[i]).lineNum);
+begin = (codeTuples[i]).lineNum;
+end =  (codeTuples[i+6]).lineNum;
+classNames = classNames+<cloneClassuri,begin,end>;
 
 duplicateLines = duplicateLines+6;
 cloneSize = cloneSize+6;
@@ -106,7 +106,7 @@ temp = size(codeTuples);
 
 
 }
-//end = (indexOf(code.cloneCode,codeTuples.cloneCode[i]));
+
 
 }
 
@@ -114,8 +114,7 @@ temp = size(codeTuples);
 if(largecloneSize<cloneSize){
 largecloneSize = cloneSize;
 largecloneClass=(codeTuples[i]).cloneClass;
-//begin = i-cloneSize;
-//end=i;
+
 }
 cloneSize=0;
 i=i+1;
@@ -161,7 +160,7 @@ println(now());
 }
 void writeToJson(list[tuple[loc cloneClass, int begin, int end]] classNames)
 {
-	loc file = |project://series2/duplication.txt|;
+	loc file = |project://series2/duplication.json|;
 	s = "{\n\"groups\":[";
 	//for (group <- duplicates)
 	//{
