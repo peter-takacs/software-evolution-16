@@ -1,10 +1,8 @@
 var MIN_WEIGHT = 6;
 
-            fetch('file:////C:/softwareevolution-workspace/visualization/duplication.json').then(function(response) { 
-	// Convert to JSON
-	return response.json();
-}).then(function(j) {
-
+            fetch('output.json',{mode:'no-cors'}).then(response => {
+                response.json().then(j => {
+                    
                     let graph = removeIsolatedNodes(createGraphObject(j));
                     let edgeMap = getEdges(j);
 
@@ -80,7 +78,7 @@ var MIN_WEIGHT = 6;
 
                     simulation.force("link")
                         .links(graph.links);
-               // })
+                })
             });
 
             function getClones(cls, groups) 
