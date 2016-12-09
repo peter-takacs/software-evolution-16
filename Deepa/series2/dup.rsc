@@ -97,6 +97,7 @@ tempEnd = tempEnd+1;
 cloneSize = cloneSize +1;
 
 i=tempEnd;
+end = (codeTuples[i]).lineNum;
 
 }
 else{
