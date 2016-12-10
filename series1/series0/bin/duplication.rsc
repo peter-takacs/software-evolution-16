@@ -244,15 +244,21 @@ list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	absoluteLineNumber = 1;
 	sanitizedLineNumber = 1;
 	offsetChar = 0;
-	for (/<whitespace:[ \t]*><line:[^\n\r]*?><lineEnd:\r?\n>/ := classText) {
-		length = size(line) + size(whitespace) + size(lineEnd); // \n
+	for (/<whitespace:[ \t]*><multiLine:\/\*.*?\*\/\r?\n>?<line:[^\n\r]*?><lineEnd:\r?\n>/s := classText) {		
+		mLines = size(multiLine) > 0 ?  size(split("\n", multiLine)) : 0;
+		println(size(whitespace));
+		println(multiLine);
+		println(line);
+		length = size(line) + size(whitespace) + size(lineEnd) + size(multiLine); // \n
+		multiLine = "";
+		absoluteLineNumber = absoluteLineNumber + mLines;
 		if (size(line) > 0 && !(/\/\/.*/ := line))
 		{
 			lines = lines + <fil.uri, <fil(offsetChar,length,<sanitizedLineNumber,absoluteLineNumber>,<sanitizedLineNumber,absoluteLineNumber>), hashString(line)>>;
 			sanitizedLineNumber = sanitizedLineNumber + 1;
 		}
 		offsetChar = offsetChar + length;
-		absoluteLineNumber = absoluteLineNumber + 1;
+		absoluteLineNumber += 1;		
 	}
 	return lines;
 }
