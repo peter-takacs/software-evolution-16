@@ -140,7 +140,8 @@ function onSourceLocationClicked(loc)
         r.text().then(text => 
         {
             lines = text.split("\n");
-            console.log(lines.slice(loc.begin, loc.end));
+            let relevantLines = lines.slice(loc.begin, loc.end).join("\n");
+            d3.select("#source-container").text(_ => relevantLines);
         });
     });
 }
@@ -148,7 +149,7 @@ function onSourceLocationClicked(loc)
 
 function ticked(link, node)
 {
-    const width = 960;
+    const width = 500;
     const height = 500;
     const radius = 6;
     link
