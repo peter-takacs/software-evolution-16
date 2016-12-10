@@ -152,36 +152,38 @@ function onTargetLocationClicked(loc)
 
 function updateSourceView(ts, locs)
 {
-    let pres = d3.select("#source-view").selectAll("pre").data(ts);
-            
+    let sources = ts.map((el, idx) => {return {text: el, location: locs[idx]}});
+    let pres = d3.select("#source-view")
+        .selectAll("pre")
+        .data(sources);
     //updated
     pres
         .classed("prettyprint", true)
         .classed("prettyprinted", false)
-        .text((text, i) => {
-            lines = text.split("\n");
-            let relevantLines = lines.slice(locs[i].begin, locs[i].end)
-                .map((line,idx) => (idx + locs[i].begin) + line)
-                .join("\n");
-            return relevantLines;
-        });
+        .text(relevantLines);
     
     //entered
-    pres.enter().append("pre")
+    pres.enter()
+        .append("pre")
         .classed("prettyprint", true)
-        .text((text, i) => {
-            lines = text.split("\n");
-            let relevantLines = lines.slice(locs[i].begin, locs[i].end)
-                .map((line,idx) => (idx + locs[i].begin) + line)
-                .join("\n");
-            return relevantLines;
-        });
+        .text(relevantLines);
+
+    
     
     //exited
     pres.exit().remove();
 
 
     PR.prettyPrint();
+}
+
+function relevantLines(source)
+{
+    lines = source.text.split("\n");
+    let relevantLines = lines.slice(source.location.begin-1, source.location.end)
+        .map((line,idx) => (idx + source.location.begin) + line)
+        .join("\n");
+    return relevantLines;
 }
 
 function ticked(link, node)
