@@ -135,7 +135,8 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 		{
 			s += "\n{\"uri\":\"<range.uri>\",";
 			s += "\n\"begin\":<range.begin.column>,";
-			s += "\n\"end\":<range.end.column>\n";
+			s += "\n\"end\":<range.end.column>,";
+			s += "\n\"length\":<range.end.line - range.begin.line + 1>\n";
 			s += "},";
 		}
 		s = substring(s,0,size(s)-1);
@@ -160,7 +161,7 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 		bool isContained = false;
 		for (x <- queue)
 		{
-			if (x[0].uri in [u.uri | u<-current])
+			if (x[0].uri in [u.uri | u<-current] && size(x) == size(current))
 			{
 				u = [k | k<-current, k.uri == x[0].uri][0];
 				if ((u.begin.line <= x[0].begin.line && u.end.line >= x[0].end.line)
@@ -244,12 +245,12 @@ list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	absoluteLineNumber = 1;
 	sanitizedLineNumber = 1;
 	offsetChar = 0;
-	for (/<whitespace:[ \t]*><multiLine:\/\*.*?\*\/\r?\n>?<line:[^\n\r]*?><lineEnd:\r?\n>/s := classText) {		
+	for (/<whitespace:[ \t]*><multiLine:\/\*.*?\*\/\r?\n>?<whitespace1:[ \t]*><line:[^\n\r]*?><lineEnd:\r?\n>/s := classText) {		
 		mLines = size(multiLine) > 0 ?  size(split("\n", multiLine)) : 0;
 		println(size(whitespace));
 		println(multiLine);
 		println(line);
-		length = size(line) + size(whitespace) + size(lineEnd) + size(multiLine); // \n
+		length = size(line) + size(whitespace) + size(lineEnd) + size(whitespace1) + size(multiLine); // \n
 		multiLine = "";
 		absoluteLineNumber = absoluteLineNumber + mLines;
 		if (size(line) > 0 && !(/\/\/.*/ := line))
