@@ -113,14 +113,15 @@ function updateList(nodes)
 
     var entered = divs.enter().append("div")
         .classed("source", true)
-        .text(d => d.source.uri.split("/").pop() + " " + d.source.begin + "-" + d.source.end);
+        .text(d => d.source.uri.split("/").pop() + " " + d.source.begin + "-" + d.source.end)
+        .on("click", onSourceLocationClicked);
         
     entered.selectAll("div")
         .data(d => d.target)
         .enter().append("div")
             .classed("target", true)                        
             .text(d => d.uri.split("/").pop() + " " + d.begin + "-" + d.end)
-            .on("click", onSourceLocationClicked);
+            .on("click", onTargetLocationClicked);
 
     divs.classed("source", true)
         .text(d => d.source.uri.split("/").pop() + " " + d.source.begin + "-" + d.source.end)
@@ -129,23 +130,59 @@ function updateList(nodes)
                 .enter().append("div")
                     .classed("target", true)                        
                     .text(d => d.uri.split("/").pop() + " " + d.begin + "-" + d.end)
-                    .on("click", onSourceLocationClicked);   
+                    .on("click", onTargetLocationClicked);   
         
     divs.exit().remove();       
 }
 
-function onSourceLocationClicked(loc)
-{
-    fetch(loc.uri.substring(loc.uri.indexOf("smallsql"))).then(r => {
-        r.text().then(text => 
-        {
-            lines = text.split("\n");
-            let relevantLines = lines.slice(loc.begin, loc.end).join("\n");
-            d3.select("#source-container").text(_ => relevantLines);
-        });
+function onSourceLocationClicked(d) {
+    var locs = [d.source, ...d.target];
+    Promise.all(locs.map(l => fetch(l.uri.substring(l.uri.indexOf("smallsql"))))).then(rs => {
+        Promise.all(rs.map(r => r.text())).then(ts => updateSourceView(ts, locs));
     });
 }
 
+function onTargetLocationClicked(loc)
+{
+    fetch(loc.uri.substring(loc.uri.indexOf("smallsql"))).then(r => {
+        r.text().then(t => updateSourceView([t], [loc]));
+    });
+}
+
+
+function updateSourceView(ts, locs)
+{
+    let pres = d3.select("#source-view").selectAll("pre").data(ts);
+            
+    //updated
+    pres
+        .classed("prettyprint", true)
+        .classed("prettyprinted", false)
+        .text((text, i) => {
+            lines = text.split("\n");
+            let relevantLines = lines.slice(locs[i].begin, locs[i].end)
+                .map((line,idx) => (idx + locs[i].begin) + line)
+                .join("\n");
+            return relevantLines;
+        });
+    
+    //entered
+    pres.enter().append("pre")
+        .classed("prettyprint", true)
+        .text((text, i) => {
+            lines = text.split("\n");
+            let relevantLines = lines.slice(locs[i].begin, locs[i].end)
+                .map((line,idx) => (idx + locs[i].begin) + line)
+                .join("\n");
+            return relevantLines;
+        });
+    
+    //exited
+    pres.exit().remove();
+
+
+    PR.prettyPrint();
+}
 
 function ticked(link, node)
 {
