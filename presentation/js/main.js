@@ -153,25 +153,30 @@ function onTargetLocationClicked(loc)
 function updateSourceView(ts, locs)
 {
     let sources = ts.map((el, idx) => {return {text: el, location: locs[idx]}});
-    let pres = d3.select("#source-view")
-        .selectAll("pre")
+    let divData = d3.select("#source-view")
+        .selectAll("div")
         .data(sources);
-    //updated
-    pres
-        .classed("prettyprint", true)
-        .classed("prettyprinted", false)
-        .text(relevantLines);
     
     //entered
-    pres.enter()
-        .append("pre")
-        .classed("prettyprint", true)
-        .text(relevantLines);
+    let enteredDivs = divData.enter()
+        .append("div")
+        .classed("view", true);
 
+    enteredDivs
+        .append("pre")
+            .classed("prettyprinted", false)
+            .classed("prettyprint", true)
+            .text(relevantLines);
     
-    
+
+    //updated
+    divData.select("pre")
+        .text(relevantLines)
+        .classed("prettyprinted", false)
+        .classed("prettyprint", true);
+
     //exited
-    pres.exit().remove();
+    divData.exit().remove();
 
 
     PR.prettyPrint();
