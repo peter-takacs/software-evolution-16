@@ -3704,3 +3704,9 @@ org.eclipse.jgit.errors.LockFailedException: Cannot lock C:\Users\Peter\dev\soft
 	at org.eclipse.core.internal.resources.Workspace.run(Workspace.java:2267)
 	at org.eclipse.ltk.internal.ui.refactoring.WorkbenchRunnableAdapter.run(WorkbenchRunnableAdapter.java:86)
 	at org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:119)
+
+!ENTRY org.eclipse.egit.core 2 0 2016-12-10 12:55:48.537
+!MESSAGE Could not automatically stage the deletion of 'C:/Users/Peter/dev/software-evolution/series1/TestHarness/src/TestJoins.java' in the git index.
+
+!ENTRY org.eclipse.egit.core 2 0 2016-12-10 12:55:48.547
+!MESSAGE Could not automatically stage the deletion of 'C:/Users/Peter/dev/software-evolution/series1/TestHarness/src/TestOperatoren.java' in the git index.

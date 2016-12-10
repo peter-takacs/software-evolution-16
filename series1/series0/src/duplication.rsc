@@ -125,7 +125,7 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 	}
 	else
 	{
-		file = |project://series0/output.txt|;
+		file = |project://series0/output.json|;
 	}
 	s = "{\n\"groups\":[";
 	for (group <- duplicates)
@@ -134,8 +134,8 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 		for (range <- group)
 		{
 			s += "\n{\"uri\":\"<range.uri>\",";
-			s += "\n\"begin\":<range.begin.line>,";
-			s += "\n\"end\":<range.end.line>\n";
+			s += "\n\"begin\":<range.begin.column>,";
+			s += "\n\"end\":<range.end.column>\n";
 			s += "},";
 		}
 		s = substring(s,0,size(s)-1);
@@ -148,15 +148,16 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 
 list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 {
-	queue = groups;
-	result = [];
+	list[list[loc]] queue = groups;
+	list[list[loc]] result = [];
 	while (size(queue) > 0)
 	{
 		println(size(queue));
-		current = queue[0];
-		delete(queue, 0);
-		fst = current[0];
-		res = [];
+		list[loc] current = queue[0];
+		queue = delete(queue, 0);
+		loc fst = current[0];
+		list[list[loc]] res = [];
+		bool isContained = false;
 		for (x <- queue)
 		{
 			if (x[0].uri in [u.uri | u<-current])
@@ -166,7 +167,16 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 					||
 					(x[0].begin.line <= u.begin.line && x[0].end.line >= u.end.line))
 				{
-					continue;
+					// u is current, x is compared
+					if (u.end.line - u.begin.line > x[0].end.line - x[0].begin.line)
+					{
+						continue;
+					}
+					else
+					{
+						isContained = true;
+						break;
+					}
 				}
 				else
 				{
@@ -178,8 +188,11 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 				res = res + [x];
 			}
 		}
-		queue = res;
-		result = result + [current];
+		if (!isContained)
+		{
+			queue = res;
+			result = result + [current];
+		}
 	}
 	return result;
 }
@@ -228,13 +241,18 @@ list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	classText = readFile(fil);
 	lines = [];
 	chunks = [];
-	offset = 1;
+	absoluteLineNumber = 1;
+	sanitizedLineNumber = 1;
 	offsetChar = 0;
-	for (/<whitespace:[ \t]*><line:[^\n]*>\n/ := classText) {
-		length = size(line) + size(whitespace) + 1; // \n
-		lines = lines + <fil.uri, <fil(offsetChar,length,<offset,0>,<offset,0>), hashString(line)>>;
+	for (/<whitespace:[ \t]*><line:[^\n\r]*?><lineEnd:\r?\n>/ := classText) {
+		length = size(line) + size(whitespace) + size(lineEnd); // \n
+		if (size(line) > 0 && !(/\/\/.*/ := line))
+		{
+			lines = lines + <fil.uri, <fil(offsetChar,length,<sanitizedLineNumber,absoluteLineNumber>,<sanitizedLineNumber,absoluteLineNumber>), hashString(line)>>;
+			sanitizedLineNumber = sanitizedLineNumber + 1;
+		}
 		offsetChar = offsetChar + length;
-		offset = offset + 1;
+		absoluteLineNumber = absoluteLineNumber + 1;
 	}
 	return lines;
 }

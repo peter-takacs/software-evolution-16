@@ -1,6 +1,6 @@
 var MIN_WEIGHT = 6;
 
-            fetch("file:///C:/Users/Peter/dev/software-evolution/presentation/output.json").then(response => {
+            fetch("output.json").then(response => {
                 response.json().then(j => {
                     
                     let graph = removeIsolatedNodes(createGraphObject(j));
