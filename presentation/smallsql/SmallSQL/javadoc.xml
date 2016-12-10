@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="SmallSQL" default="javadoc">
+    <target name="javadoc">
+        <javadoc destdir="doc" access="private" source="1.4" use="true"
+            notree="false" nonavbar="false" noindex="false"
+            splitindex="true" author="true" version="true"
+            nodeprecatedlist="false" nodeprecated="false"
+            packagenames="smallsql.database" sourcepath="src" classpath="bin;C:\Programme\eclipse\plugins\org.junit_3.8.1\junit.jar"/>
+    </target>
+</project>

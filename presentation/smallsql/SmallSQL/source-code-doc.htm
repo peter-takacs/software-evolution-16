@@ -1,0 +1,155 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Language" content="en-us">
+<title>SmallSQL Database - Source Code Documentation</title>
+</head>
+
+<body>
+
+<h1>SmallSQL Database - Source Code Documentation</h1>
+<p>This is short overview of the sources of the SmallSQL Database version 0.17.</p>
+<h2>Packages</h2>
+<p>Currently there are 3 packages in the project.</p>
+<ul>
+	<li><b>smallsql.database</b><br>
+	This package include the core of the database and the JDBC interface<br>
+&nbsp;</li>
+	<li><b>smallsql.junit</b><br>
+	This package include the JUnit regression tests.<br>
+&nbsp;</li>
+	<li><b>smallsql.tools</b><br>
+	This package include the all helper tool. Currently there is only a command 
+	line tool.</li>
+</ul>
+<h2>Package smallsql.database</h2>
+<p>Here is a short description of the classes of the package smallsql.database.</p>
+<ul>
+	<li><b>SS*</b><br>
+	All classes that are start with SS are part of the public JDBC interface. 
+	This classes are the only public interface. All other classes are package. 
+	This is a limit of the Java language. There is no access modifier for 
+	library or jar file like in C#. This classes also include some logic that 
+	are have a large binding to the JDBC API. For example the transaction 
+	management in SSConnection.<br>
+&nbsp;</li>
+	<li><b>Database</b><br>
+	This class descript a database or catalog. A database is saved in one 
+	directory of the file system. Configuration information will be saved in the 
+	file smallsql.master. There is only one instance of this class for one 
+	directory. This means a SSConnection can have references to multiple 
+	databases if there is a database qualifier in SQL. An instance of database 
+	can be shared between multiple SSConnections. This class hold a cache to the 
+	loaded tables and views.<br>
+&nbsp;</li>
+	<li><b>SQLParser, SQLTokenizer, SQLToken</b><br>
+	This classes are the parser of the SQL. First it will split the SQL string 
+	in a list of SQLTokens. Then the list will be parsed. The parser was 
+	implements manually. There was no parser generator used. The result of 
+	parsing is a class of Command.<br>
+&nbsp;</li>
+	<li><b>Command*</b><br>
+	This class holds the execution tree after parsing a SQL string. Depending of 
+	the type of SQL there are different classes.<br>
+&nbsp;</li>
+	<li><b>Expression*</b><br>
+	There is a large count of small classes that extends from Expression. A 
+	Expression is like a result column in a result set. Expression can based on 
+	other&nbsp; Expressions.<ul>
+		<li>ExpressionName - Has a column <b>name</b>. This expression show the 
+		values of a Column from a table or view.</li>
+		<li>ExpressionFunction* - This expression show the value of the specific 
+		SQL function.</li>
+		<li>ExpressionValue - This is a const value. For example a string in 
+		SQL. Parameter are also used for this class.</li>
+		<li>ExpressionArithmetic - This expression implement SQL operators like 
+		+, -, AND, BETWEEN, LIKE, ...
+&nbsp;</li>
+	</ul><br>
+	</li>
+	<li><b>RowSource</b><br>
+	All instances of this interface are the source of rows. A RowSource can 
+	navigate (scroll) through rows. A RowSource can based on other RowSources. 
+	Implementations are:<ul>
+		<li><b>DataSource</b> - A Source of Expressions, See the next chapter</li>
+		<li><b>Distinct</b> - Implements the keyword DISTINCT</li>
+		<li><b>Join</b> - Implements a JOIN of 2 other RowSources</li>
+		<li><b>NoFromResult</b> - It used for SELECT without a FROM like &quot;SELECT 
+		1&quot;. The Oracle equivalent is FROM DUAL. This RowSource has only one row.</li>
+		<li><b>Scrollable</b> - RowSource that support backward scrolling. It is 
+		a wrapper around another RowSource</li>
+		<li><b>SortedResult</b> - Like Scrollable support this scrollable and a 
+		sorting. It is also a wrapper acound another RowSource.</li>
+		<li><b>Where</b> - This is a RowSource with a filter. How the name say 
+		this is a wrapper aound the top RowSource of the FROM clause with the 
+		filter of the WHERE clause.
+&nbsp;</li>
+	</ul><br>
+	</li>
+	<li><b>DataSource</b><br>
+	This class combine a list of Expressions with the RowSource.<ul>
+	<li><b>MemoryResult</b> - Used for hold the results of the 
+	SSDatabaseMetaData.</li>
+	<li><b>GroupResult</b> - Is used for GROUP BY. Every row can be accumulate 
+	from multiple rows of a based DataSource.</li>
+	<li><b>TableResult</b> - The results from a table</li>
+	<li><b>ViewResult</b> - The result form a view. A view based on a 
+	CommandSelect.</li>
+	<li><b>UnionAll</b> - A catenation of 2 DataSources.</li>
+</ul>
+	<br></li>
+	<li><b>Column</b><br>
+	A description of column in a table.<br>
+&nbsp;</li>
+	<li><b>Identity</b><br>
+	A auto value as default value for a Column.<br>
+&nbsp;</li>
+	<li><b>ColumnExpression</b><br>
+	A description of calculated column in a view. It based on the Expression. 
+	This is the inverse of ExpressionName.<br>
+&nbsp;</li>
+	<li><b>Store*<br>
+	</b>This classes are used to save the data. <b>StoreImpl</b> is class that 
+	implements file format. If you want implements another file format like XML 
+	or plain text then you need to replace this class.<br>
+&nbsp;</li>
+	<li><b>IndexDescription<br>
+	</b>A description of a index. It include information like name, columns, 
+	unique, primary, ...<br>
+&nbsp;</li>
+	<li><b>ForeignKey</b><br>
+	A description of a foreign key.<br>
+&nbsp;</li>
+	<li><b>Index, IndexNode<br>
+	</b>A multi column index in memory. This is using for sorting of rows.<br>
+&nbsp;</li>
+	<li><b>IndexScrollStatus, IndexNodeScrollStatus</b><br>
+	A pointer in the index. Can be used to scoll forward and backward throug the 
+	index.<br>
+&nbsp;</li>
+	<li><b>FileIndex, FileIndexNode<br>
+	</b>A multi column index on hard disk. Currently under construction.<br>
+&nbsp;</li>
+	<li><b>Columns, Expressions, IndexDescriptions, ForeignKeys</b><br>
+	This are typed array lists. This reduce the casting and make the code more 
+	readable.<br>
+&nbsp;</li>
+	<li><b>DateTime</b><br>
+	A faster implementation of Date, Time and TimeStamp without any time zone 
+	information.<br>
+&nbsp;</li>
+	<li><b>Money</b><br>
+	A fixed point number with a scale of 4. Equals to the MS SQL Server data 
+	type.<br>
+&nbsp;</li>
+	<li><b>Mutable</b><br>
+	Implements the Numbers as mutable objects. This is used for GROUP BY to 
+	accumulate the values.</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>
