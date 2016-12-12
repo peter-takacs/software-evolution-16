@@ -1,4 +1,5 @@
 var MIN_WEIGHT = 3;
+var PREAMBLE_WIDTH = 2;
 
 function buildForces(svg, width, height) {
     
@@ -154,26 +155,42 @@ function updateSourceView(ts, locs)
 {
     let sources = ts.map((el, idx) => {return {text: el, location: locs[idx]}});
     let divData = d3.select("#source-view")
-        .selectAll("div")
+        .selectAll("code")
         .data(sources);
     
     //entered
     let enteredDivs = divData.enter()
-        .append("div")
+        .append("code")
         .classed("view", true);
 
     enteredDivs
-        .append("pre")
+        .insert("pre")
             .classed("prettyprinted", false)
-            .classed("prettyprint", true)
+            .classed("prettyprint", true)            
+            .classed("preamble", true)
+            .text(preamble);
+    enteredDivs
+        .insert("pre")
+            .classed("prettyprinted", false)
+            .classed("prettyprint", true)            
+            .classed("important", true)
             .text(relevantLines);
+    enteredDivs
+        .insert("pre")
+            .classed("prettyprinted", false)
+            .classed("prettyprint", true)            
+            .classed("postfix", true)
+            .text(postfix);
+
     
 
     //updated
-    divData.select("pre")
+    divData.select("pre.preamble")
+        .text(preamble)
+    divData.select("pre.important")
         .text(relevantLines)
-        .classed("prettyprinted", false)
-        .classed("prettyprint", true);
+    divData.select("pre.postfix")
+        .text(postfix)
 
     //exited
     divData.exit().remove();
@@ -182,11 +199,29 @@ function updateSourceView(ts, locs)
     PR.prettyPrint();
 }
 
+function preamble(source)
+{
+    lines = source.text.split("\n");
+    let relevantLines = lines.slice(source.location.begin-PREAMBLE_WIDTH, source.location.begin)
+        .map((line,idx) => (idx + source.location.begin-PREAMBLE_WIDTH) + line)
+        .join("\n");
+    return relevantLines;
+}
+
 function relevantLines(source)
 {
     lines = source.text.split("\n");
     let relevantLines = lines.slice(source.location.begin-1, source.location.end)
         .map((line,idx) => (idx + source.location.begin) + line)
+        .join("\n");
+    return relevantLines;
+}
+
+function postfix(source)
+{
+    lines = source.text.split("\n");
+    let relevantLines = lines.slice(source.location.end-1, source.location.end+PREAMBLE_WIDTH)
+        .map((line,idx) => (idx + source.location.end-1) + line)
         .join("\n");
     return relevantLines;
 }

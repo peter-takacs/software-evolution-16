@@ -7,6 +7,7 @@ import Set;
 import List;
 import Type;
 import Map;
+import util::Math;
 import ListRelation;
 import lang::java::m3::Core;
 
@@ -108,15 +109,33 @@ str gradeDuplication(model)
 	return "++";
 }
 
-list[list[loc]] findDuplicateChunksInProject(model) {
+list[list[loc]] findDuplicateChunksInProject(model, minSize) {
 	filesToChunks = chunkifyFiles(model);
 	lines = range(filesToChunks);
 	groups = groupSameLines(lines);
 	locs = [x[0] | x<-lines];
-	return [x | x <- deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks))];
+	return [x | x <- deleteOverlapping(findDuplicateChunks(groups, locs, lines, filesToChunks)), x[0].end.line-x[0].begin.line > minSize];
 }
 
-void writeToJson(list[list[loc]] duplicates, bool isTest)
+list[loc] findLargestClone(list[list[loc]] duplicates) {
+	int largestSize = 0;
+	list[loc] largestClone;
+	
+	for (list[loc] group <- duplicates)
+	{
+		loc firstChunk = group[0];
+		int size = firstChunk.end.line - firstChunk.begin.line;
+		if (size > largestSize) 
+		{
+			largestSize = size;
+			largestClone = group;
+		}
+	}
+	
+	return largestClone;
+}
+
+void writeToJson(list[list[loc]] duplicates, bool isTest, model)
 {
 	loc file;
 	if (isTest)
@@ -127,6 +146,12 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 	{
 		file = |project://series0/output.json|;
 	}
+	
+	largestClone = findLargestClone(duplicates);	
+	
+	duplicateVolume = (0 | it + (x[0].end.line-x[0].begin.line)*size(x) | x <- duplicates);
+	ratio = toReal(duplicateVolume) / volume(model) * 100;
+	
 	s = "{\n\"groups\":[";
 	for (group <- duplicates)
 	{
@@ -137,13 +162,30 @@ void writeToJson(list[list[loc]] duplicates, bool isTest)
 			s += "\n\"begin\":<range.begin.column>,";
 			s += "\n\"end\":<range.end.column>,";
 			s += "\n\"length\":<range.end.line - range.begin.line + 1>\n";
-			s += "},";
+			s += "},"; // chunk
 		}
 		s = substring(s,0,size(s)-1);
-		s += "\n]\n},";
+		s += "\n]\n},"; //group
 	}
 	s = substring(s,0,size(s)-1);
-	s += "\n]\n}";
+	s += "\n],";
+	s += "\"largestClone\":";
+		s += "\n{\"classes\":[";
+		for (range <- largestClone)
+		{
+			s += "\n{\"uri\":\"<range.uri>\",";
+			s += "\n\"begin\":<range.begin.column>,";
+			s += "\n\"end\":<range.end.column>,";
+			s += "\n\"length\":<range.end.line - range.begin.line + 1>\n";
+			s += "},"; // chunk
+		}
+		s = substring(s,0,size(s)-1);	
+		s += "]"; //group	
+	s += "\n}"; // largestClone
+		s += ",\"percentage\":<ratio>";
+		s += ",\"totalVolumeOfProject\":<volume(model)>";
+		s += ",\"totalVolumeOfDuplicates\":<duplicateVolume>";		
+	s += "\n}"; // end
 	writeFile(file, s);
 }
 
@@ -153,7 +195,6 @@ list[list[loc]] deleteOverlapping(list[list[loc]] groups)
 	list[list[loc]] result = [];
 	while (size(queue) > 0)
 	{
-		println(size(queue));
 		list[loc] current = queue[0];
 		queue = delete(queue, 0);
 		loc fst = current[0];
@@ -247,9 +288,6 @@ list[tuple[str, tuple[loc,int]]] chunkify(loc fil) {
 	offsetChar = 0;
 	for (/<whitespace:[ \t]*><multiLine:\/\*.*?\*\/\r?\n>?<whitespace1:[ \t]*><line:[^\n\r]*?><lineEnd:\r?\n>/s := classText) {		
 		mLines = size(multiLine) > 0 ?  size(split("\n", multiLine)) : 0;
-		println(size(whitespace));
-		println(multiLine);
-		println(line);
 		length = size(line) + size(whitespace) + size(lineEnd) + size(whitespace1) + size(multiLine); // \n
 		multiLine = "";
 		absoluteLineNumber = absoluteLineNumber + mLines;
