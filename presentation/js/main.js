@@ -63,6 +63,9 @@ fetch("output.json").then(response => {
 
         simulation.force("link")
             .links(graph.links);
+
+        updateLarges(responseJson.largestClone.classes);
+        
     })
 });
 
@@ -136,8 +139,25 @@ function updateList(nodes)
     divs.exit().remove();       
 }
 
+function updateLarges(classes)
+{
+    var divs = d3.select("#largest-clone").select("div")
+        .data(classes);
+
+    var entered = divs.enter().append("div")
+        .classed("target", true)
+        .text(d => d.uri.split("/").pop() + " " + d.begin + "-" + d.end)
+        .on("click", onTargetLocationClicked);
+            
+
+    divs.classed("source", true)
+        .text(d => d.uri.split("/").pop() + " " + d.begin + "-" + d.end);
+        
+    divs.exit().remove();       
+}
+
 function onSourceLocationClicked(d) {
-    var locs = [d.source, ...d.target];
+    var locs = d.target;
     Promise.all(locs.map(l => fetch(l.uri.substring(l.uri.indexOf("smallsql"))))).then(rs => {
         Promise.all(rs.map(r => r.text())).then(ts => updateSourceView(ts, locs));
     });
@@ -202,7 +222,7 @@ function updateSourceView(ts, locs)
 function preamble(source)
 {
     lines = source.text.split("\n");
-    let relevantLines = lines.slice(source.location.begin-PREAMBLE_WIDTH, source.location.begin)
+    let relevantLines = lines.slice(source.location.begin-PREAMBLE_WIDTH-2, source.location.begin-2)
         .map((line,idx) => (idx + source.location.begin-PREAMBLE_WIDTH) + line)
         .join("\n");
     return relevantLines;
@@ -220,8 +240,8 @@ function relevantLines(source)
 function postfix(source)
 {
     lines = source.text.split("\n");
-    let relevantLines = lines.slice(source.location.end-1, source.location.end+PREAMBLE_WIDTH)
-        .map((line,idx) => (idx + source.location.end-1) + line)
+    let relevantLines = lines.slice(source.location.end, source.location.end+1+PREAMBLE_WIDTH)
+        .map((line,idx) => (idx + source.location.end+1) + line)
         .join("\n");
     return relevantLines;
 }

@@ -30,6 +30,7 @@
 
             .target {
                 margin-left: 15px;
+                text-decoration: underline;
             }
             
             pre {
@@ -41,11 +42,16 @@
             }
 
             code pre.important {
-                border:none;                
+                border:none;
+                background: #e8ffe2;                
             }
 
             code pre.postfix {
                 border:none;
+            }
+
+            code {
+                margin: 5px;
             }
         </style>
 
@@ -84,14 +90,11 @@
             </div>
             <div class="flex-row" id="statistics">
                 <div>
-                    Largest clone:
-                    <div>
-                        
+                    <h1>Largest clone:</h1>
+                    <div id="largest-clone">
+                            
                     </div>
                 </div>
-            </div>
-            <div>
-                using <a href="https://bl.ocks.org/mbostock/4062045">https://bl.ocks.org/mbostock/4062045</a>
             </div>
         </div>
     </body>

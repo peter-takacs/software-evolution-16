@@ -20,7 +20,6 @@ INDEX VERSION 1.129+C:\Users\Peter\dev\software-evolution\series1\.metadata\.plu
 2997081707.index
 1079785641.index
 1297580988.index
-865863436.index
 662129271.index
 3736435403.index
 3028879811.index
