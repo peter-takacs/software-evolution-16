@@ -1,0 +1,10 @@
+*test*
+lib
+*Test*
+coverage*
+bin
+backup
+docs
+cobertura
+cobertura.ser
+SampleDB

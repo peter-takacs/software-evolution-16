@@ -1,0 +1,74 @@
+div
+{
+    font-family: sans-serif;
+    color: #0a0a0a;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.sidebar
+{
+    height: 100vh;
+    border-left: 2px solid #5E0035;
+    padding: 5px;
+}
+
+.selected-class {
+    font-size: x-large;
+    margin-bottom: 10px;
+}
+
+#has-common div {
+    font-family: 'Consolas', monospace;
+}
+
+#header
+{
+    border-bottom: 2px solid #5E0035;
+}
+
+#header h1 {
+    font-weight: 200;
+    margin: 0;
+    margin-left: 5px;    
+}
+
+.links line 
+{
+    stroke: #999;
+    stroke-opacity: 0.6;
+}
+
+.nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+circle {
+    fill: white;
+    stroke: #333;
+}
+
+circle.selected {
+    fill: #5E0035;
+}
+
+circle.secondary {
+    fill: #023618;
+}
+
+.target {
+    margin-left: 15px;
+}
