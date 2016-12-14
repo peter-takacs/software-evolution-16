@@ -10,49 +10,7 @@
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         <style>
 
-            .links line {
-                stroke: #999;
-                stroke-opacity: 0.6;
-            }
-
-            .nodes circle {
-                stroke: #fff;
-                stroke-width: 1.5px;
-            }
-
-            circle.selected {
-                fill: #f00;
-            }
-
-            circle.secondary {
-                fill: yellow;
-            }
-
-            .target {
-                margin-left: 15px;
-                text-decoration: underline;
-            }
             
-            pre {
-                margin:0;
-            }
-
-            code pre.preamble {
-                border: none;
-            }
-
-            code pre.important {
-                border:none;
-                background: #e8ffe2;                
-            }
-
-            code pre.postfix {
-                border:none;
-            }
-
-            code {
-                margin: 5px;
-            }
         </style>
 
         <!-- Place favicon.ico in the root directory -->
@@ -71,28 +29,39 @@
     </head>
     <body>
         <div class="flex-column">
-            <div class="flex-row">
-                <div class="flex-column">
-                    <div id="header">
-                        <h1>Clone detection</h1>
+            <header id="header" class="flex-row">
+                <a id="clone-tab" href="#">Clone detection</a>
+                <a id="statistics-tab" href="#">Statistics</a>
+            </header>
+
+            <div id="body" class="flex-row">
+                <div class="flex-row" id="graph">
+                    <div class="flex-column">                    
+                        <svg width="600" height="600"></svg>
+                    </div>                
+                </div>
+                
+                <div class="flex-row hidden" id="statistics">
+                    <div>
+                        <h1>Largest clone:</h1>
+                        <div id="largest-clone">
+                                
+                        </div>
                     </div>
-                    <svg width="600" height="600"></svg>
-                </div>
-                <div id="details" class="sidebar">
-                    <div class="selected-class"></div>
-                    <div id="has-common">
-                    
+                    <div>
+                        <h1>Percentage of cloned lines</h1>
                     </div>
                 </div>
-                <div id="source-view">
-                    
-                </div>
-            </div>
-            <div class="flex-row" id="statistics">
-                <div>
-                    <h1>Largest clone:</h1>
-                    <div id="largest-clone">
-                            
+                
+                <div id="sidebar" class="flex-row">
+                    <div id="details" class="sidebar">
+                        <div class="selected-class"></div>
+                        <div id="has-common">
+                        
+                        </div>
+                    </div>
+                    <div id="source-view">
+                        
                     </div>
                 </div>
             </div>

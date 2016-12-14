@@ -23,52 +23,6 @@ function buildLinks(svg, graph) {
             .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
 }
 
-fetch("output.json").then(response => {
-    response.json().then(responseJson => {
-        
-        let graph = removeIsolatedNodes(createGraphObject(responseJson));
-        let edgeMap = getEdges(responseJson);
-
-        // get svg attributes
-        let svg = d3.select("svg");
-        let width = +svg.attr("width");
-        let height = +svg.attr("height");
-
-        let simulation = buildForces(svg, width, height);
-        let color = d3.scaleOrdinal(d3.schemeCategory20);
-        let link = buildLinks(svg, graph);
-
-        let node = svg.append("g")
-            .attr("class", d => {
-                if (d === undefined) return "";
-                return "nodes" + d.isSelected ? " selected" : "";
-            })
-            .selectAll("circle")
-            .data(graph.nodes).enter()
-                .append("circle")
-                .attr("r", 5)
-                .attr("fill", function(d) { return color(d.group); })
-                .call(d3.drag()
-                    .on("start", d => dragstarted(d, simulation))
-                    .on("drag", d => dragged(d, simulation))
-                    .on("end", d => dragended(d, simulation)))
-                .on("click", el => onNodeSelected(el, graph, responseJson.groups, edgeMap, node));
-
-        node.append("title")
-            .text(function(d) { return d.id; });
-
-        simulation
-            .nodes(graph.nodes)
-            .on("tick", () => ticked(link, node));
-
-        simulation.force("link")
-            .links(graph.links);
-
-        updateLarges(responseJson.largestClone.classes);
-        
-    })
-});
-
 function onNodeSelected(el, graph, groups, edgeMap, node)
 {
     for (let n of graph.nodes)
@@ -352,3 +306,64 @@ function getClasses(j) {
     }
     return Array.from(classes).map(e => {return {id: e, isSelected: false}});
 }
+
+
+document.on("DOMContentLoaded", () => {
+
+    fetch("output.json").then(response => {
+    response.json().then(responseJson => {
+        
+        let graph = removeIsolatedNodes(createGraphObject(responseJson));
+        let edgeMap = getEdges(responseJson);
+
+        // get svg attributes
+        let svg = d3.select("svg");
+        let width = +svg.attr("width");
+        let height = +svg.attr("height");
+
+        let simulation = buildForces(svg, width, height);
+        let color = d3.scaleOrdinal(d3.schemeCategory20);
+        let link = buildLinks(svg, graph);
+
+        let node = svg.append("g")
+            .attr("class", d => {
+                if (d === undefined) return "";
+                return "nodes" + d.isSelected ? " selected" : "";
+            })
+            .selectAll("circle")
+            .data(graph.nodes).enter()
+                .append("circle")
+                .attr("r", 5)
+                .attr("fill", function(d) { return color(d.group); })
+                .call(d3.drag()
+                    .on("start", d => dragstarted(d, simulation))
+                    .on("drag", d => dragged(d, simulation))
+                    .on("end", d => dragended(d, simulation)))
+                .on("click", el => onNodeSelected(el, graph, responseJson.groups, edgeMap, node));
+
+        node.append("title")
+            .text(function(d) { return d.id; });
+
+        simulation
+            .nodes(graph.nodes)
+            .on("tick", () => ticked(link, node));
+
+        simulation.force("link")
+            .links(graph.links);
+
+        updateLarges(responseJson.largestClone.classes);
+        
+        })
+    });
+
+    d3.select("#statistics-tab").on("click", () => {
+        d3.select("#statistics").classed("hidden", false);
+        d3.select("#graph").classed("hidden", true);
+    })
+
+    d3.select("#clone-tab").on("click", () => {
+        d3.select("#statistics").classed("hidden", true);
+        d3.select("#graph").classed("hidden", false);
+    })
+
+});

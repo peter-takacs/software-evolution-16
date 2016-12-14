@@ -39,10 +39,21 @@ div
     border-bottom: 2px solid #5E0035;
 }
 
-#header h1 {
+#header a {
     font-weight: 200;
     margin: 0;
-    margin-left: 5px;    
+    margin-left: 5px;
+    margin-right: 10px;
+    text-decoration: underline;
+    font-size: x-large;
+    color: #0a0a0a;    
+}
+
+h1 {
+    font-weight: 200;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 10px;    
 }
 
 .links line 
@@ -71,4 +82,54 @@ circle.secondary {
 
 .target {
     margin-left: 15px;
+}
+
+.links line 
+{
+    stroke: #999;
+    stroke-opacity: 0.6;
+}
+
+.nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+circle.selected {
+    fill: #f00;
+}
+
+circle.secondary {
+    fill: yellow;
+}
+
+.target {
+    margin-left: 15px;
+    text-decoration: underline;
+}
+
+pre {
+    margin:0;
+}
+
+code pre.preamble {
+    border: none;
+}
+
+code pre.important {
+    border:none;
+    background: #e8ffe2;                
+}
+
+code pre.postfix {
+    border:none;
+}
+
+code {
+    margin: 5px;
+}
+
+.hidden 
+{
+    display: none;
 }

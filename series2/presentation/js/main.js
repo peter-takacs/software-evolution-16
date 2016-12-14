@@ -23,52 +23,6 @@ function buildLinks(svg, graph) {
             .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
 }
 
-fetch("output.json").then(response => {
-    response.json().then(responseJson => {
-        
-        let graph = removeIsolatedNodes(createGraphObject(responseJson));
-        let edgeMap = getEdges(responseJson);
-
-        // get svg attributes
-        let svg = d3.select("svg");
-        let width = +svg.attr("width");
-        let height = +svg.attr("height");
-
-        let simulation = buildForces(svg, width, height);
-        let color = d3.scaleOrdinal(d3.schemeCategory20);
-        let link = buildLinks(svg, graph);
-
-        let node = svg.append("g")
-            .attr("class", d => {
-                if (d === undefined) return "";
-                return "nodes" + d.isSelected ? " selected" : "";
-            })
-            .selectAll("circle")
-            .data(graph.nodes).enter()
-                .append("circle")
-                .attr("r", 5)
-                .attr("fill", function(d) { return color(d.group); })
-                .call(d3.drag()
-                    .on("start", d => dragstarted(d, simulation))
-                    .on("drag", d => dragged(d, simulation))
-                    .on("end", d => dragended(d, simulation)))
-                .on("click", el => onNodeSelected(el, graph, responseJson.groups, edgeMap, node));
-
-        node.append("title")
-            .text(function(d) { return d.id; });
-
-        simulation
-            .nodes(graph.nodes)
-            .on("tick", () => ticked(link, node));
-
-        simulation.force("link")
-            .links(graph.links);
-
-        updateLarges(responseJson.largestClone.classes);
-        
-    })
-});
-
 function onNodeSelected(el, graph, groups, edgeMap, node)
 {
     for (let n of graph.nodes)
@@ -83,7 +37,8 @@ function onNodeSelected(el, graph, groups, edgeMap, node)
 
     updateList(getClones(el.id, groups));
 
-    let neighboringNodes = graph.nodes.filter(n => Array.from(edgeMap.get(el.id)).map(i => i[0]).includes(n.id));
+    //let neighboringNodes = graph.nodes.filter(n => Array.from(edgeMap.get(el.id)).map(i => i[0]).includes(n.id));
+    let neighboringNodes = graph.nodes.filter(n => graph.links.some(e => (e.source.id == el.id && e.target.id == n.id) || (e.source.id == n.id && e.target.id == el.id)));
     for (let neighbor of neighboringNodes)
     {
         neighbor.isSecondary = true;
@@ -102,7 +57,7 @@ function getClones(cls, groups)
     for (let group of groups)
     {
         if (group === undefined || group.classes == undefined) continue;
-        if (group.classes.some(e => e.uri == cls && e.end - e.begin > MIN_WEIGHT))
+        if (group.classes.some(e => e.uri == cls && e.length > MIN_WEIGHT))
         {
             result.push({source: group.classes.find(e => e.uri == cls), target: group.classes.filter(e => e.uri !== undefined)});
         }
@@ -141,7 +96,7 @@ function updateList(nodes)
 
 function updateLarges(classes)
 {
-    var divs = d3.select("#largest-clone").select("div")
+    var divs = d3.select("#largest-clone").selectAll("div")
         .data(classes);
 
     var entered = divs.enter().append("div")
@@ -301,16 +256,13 @@ function getEdges(j)
     let edges = new Map();
     for (let group of groups)
     {
-        if (group.classes === undefined) continue;
         for (let clsA of group.classes)
         {
-            if (group.classes === undefined) continue;
             for (let clsB of group.classes)
             {
                 if (clsA.uri != clsB.uri)
                 {
-                    if (clsA.uri == undefined || clsB.uri == undefined) continue;
-                    let weight = clsA.end-clsA.begin;
+                    let weight = clsA.length;
                     if (weight > MIN_WEIGHT)
                     {
                         if (edges.has(clsA.uri))
@@ -352,3 +304,64 @@ function getClasses(j) {
     }
     return Array.from(classes).map(e => {return {id: e, isSelected: false}});
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    fetch("output.json").then(response => {
+    response.json().then(responseJson => {
+        
+        let graph = removeIsolatedNodes(createGraphObject(responseJson));
+        let edgeMap = getEdges(responseJson);
+
+        // get svg attributes
+        let svg = d3.select("svg");
+        let width = +svg.attr("width");
+        let height = +svg.attr("height");
+
+        let simulation = buildForces(svg, width, height);
+        let color = d3.scaleOrdinal(d3.schemeCategory20);
+        let link = buildLinks(svg, graph);
+
+        let node = svg.append("g")
+            .attr("class", d => {
+                if (d === undefined) return "";
+                return "nodes" + d.isSelected ? " selected" : "";
+            })
+            .selectAll("circle")
+            .data(graph.nodes).enter()
+                .append("circle")
+                .attr("r", 5)
+                .attr("fill", function(d) { return color(d.group); })
+                .call(d3.drag()
+                    .on("start", d => dragstarted(d, simulation))
+                    .on("drag", d => dragged(d, simulation))
+                    .on("end", d => dragended(d, simulation)))
+                .on("click", el => onNodeSelected(el, graph, responseJson.groups, edgeMap, node));
+
+        node.append("title")
+            .text(function(d) { return d.id; });
+
+        simulation
+            .nodes(graph.nodes)
+            .on("tick", () => ticked(link, node));
+
+        simulation.force("link")
+            .links(graph.links);
+
+        updateLarges(responseJson.largestClone.classes);
+        
+        });
+    });
+
+    d3.select("#statistics-tab").on("click", () => {
+        d3.select("#statistics").classed("hidden", false);
+        d3.select("#graph").classed("hidden", true);
+    })
+
+    d3.select("#clone-tab").on("click", () => {
+        d3.select("#statistics").classed("hidden", true);
+        d3.select("#graph").classed("hidden", false);
+    })
+
+});
