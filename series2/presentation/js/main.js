@@ -1,4 +1,4 @@
-var MIN_WEIGHT = 3;
+var MIN_WEIGHT = 5;
 var PREAMBLE_WIDTH = 2;
 
 function buildForces(svg, width, height) {
@@ -24,7 +24,9 @@ function buildLinks(svg, graph) {
 }
 
 function onNodeSelected(el, graph, groups, edgeMap, node)
-{
+{   
+    d3.select("#sidebar").classed("hidden", false);
+
     for (let n of graph.nodes)
     {
         n.isSelected = false;
@@ -108,7 +110,7 @@ function updateLarges(classes)
     divs.classed("source", true)
         .text(d => d.uri.split("/").pop() + " " + d.begin + "-" + d.end);
         
-    divs.exit().remove();       
+    divs.exit().remove();           
 }
 
 function onSourceLocationClicked(d) {
@@ -350,6 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .links(graph.links);
 
         updateLarges(responseJson.largestClone.classes);
+        document.querySelector("#cloned-percentage").textContent = responseJson.percentage + "%";
         
         });
     });
@@ -357,11 +360,13 @@ document.addEventListener("DOMContentLoaded", () => {
     d3.select("#statistics-tab").on("click", () => {
         d3.select("#statistics").classed("hidden", false);
         d3.select("#graph").classed("hidden", true);
+        d3.select("#details").classed("hidden", true);
     })
 
     d3.select("#clone-tab").on("click", () => {
         d3.select("#statistics").classed("hidden", true);
         d3.select("#graph").classed("hidden", false);
+        d3.select("#details").classed("hidden", false);
     })
 
 });
