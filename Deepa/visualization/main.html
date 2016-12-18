@@ -1,0 +1,22 @@
+<html>
+<head>
+<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+<script type="text/javascript">
+    $(function(){
+    console.log('begin');
+        $.getJSON('test.json',function(data){
+            console.log('success');
+            $.each(data.classes,function(i,emp){
+                $('ul').append('<li>'+emp.uri+' '+emp.begin+' - '+emp.end+' </li>');
+            });
+        }).error(function(){
+            console.log('error');
+        });
+    });
+</script>
+</head>
+<body>
+	<h1>Clone classes in SmallSQL</h1>
+    <ul></ul>
+</body>
+</html>
